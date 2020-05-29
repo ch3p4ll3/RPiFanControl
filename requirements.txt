@@ -1,2 +1,2 @@
-psutil==5.7.0
 pigpio==1.46
+psutil==5.7.0
