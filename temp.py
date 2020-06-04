@@ -3,40 +3,60 @@
 import pigpio
 import time
 import psutil
+import signal
+
+run = True
 
 
-GPIO = 13  # GPIO pin (BCM) of the transistor that controls the fan
+def handler_stop_signals(signum, frame) -> None:
+    global run
+    run = False
 
-pi = pigpio.pi()
 
-if not pi.connected:
-    exit(0)
+def main() -> None:
+    global run
+    gpio = 13  # gpio pin (BCM) of the transistor that controls the fan
 
-pi.set_mode(GPIO, pigpio.OUTPUT)
-pi.set_PWM_frequency(GPIO, 20000)  # Set frequency at 20KHz
-pi.set_PWM_range(GPIO, 100)   # Now  25 = 1/4,   50 = 1/2,   75 = 3/4 on
-pi.set_PWM_dutycycle(GPIO, 0)
+    pi = pigpio.pi()
 
-out_min = 30  # min speed
-out_max = 100  # max speed
-in_min = 25  # temperature min
-in_max = 65  # temperature max
+    if not pi.connected:
+        exit(0)
 
-while True:
-    try:
-        tempC = psutil.sensors_temperatures()['cpu-thermal'][0][1]
-        calc = (tempC - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+    pi.set_mode(gpio, pigpio.OUTPUT)  # Set gpio pin as OUTPUT
+    pi.set_PWM_frequency(gpio, 20000)  # Set frequency at 20KHz
+    pi.set_PWM_range(gpio, 100)  # Now  25 = 1/4,   50 = 1/2,   75 = 3/4 on
+    pi.set_PWM_dutycycle(gpio, 0)  # Set PWM Duty Cycle to 0
 
-        if calc > out_max:
-            calc = out_max
+    out_min = 30  # min speed
+    out_max = 100  # max speed
+    in_min = 25  # temperature min
+    in_max = 65  # temperature max
 
-        elif calc < out_min:
-            calc = out_min
+    while run:
+        try:
+            tempC = psutil.sensors_temperatures()['cpu-thermal'][0][1]
+            calc = (tempC - in_min) * (out_max - out_min) / \
+                   (in_max - in_min) + out_min
 
-        pi.set_PWM_dutycycle(GPIO, calc)
+            if calc > out_max:
+                calc = out_max
 
-        time.sleep(.5)
+            elif calc < out_min:
+                calc = out_min
 
-    except KeyboardInterrupt:
-        pi.set_PWM_dutycycle(GPIO, 0)
-        pi.stop()
+            pi.set_PWM_dutycycle(gpio, calc)
+
+            time.sleep(.5)
+
+        except KeyboardInterrupt:
+            pi.set_PWM_dutycycle(gpio, 0)
+            pi.stop()
+
+    pi.set_PWM_dutycycle(gpio, 0)
+    pi.stop()
+
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, handler_stop_signals)
+    signal.signal(signal.SIGTERM, handler_stop_signals)
+    main()

@@ -1,5 +1,5 @@
 [Unit]
-Description=temp
+Description=RPi fan control
 After=network.target
 
 [Service]
