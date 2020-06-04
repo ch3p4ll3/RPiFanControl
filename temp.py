@@ -4,6 +4,8 @@ import pigpio
 import time
 import psutil
 import signal
+import subprocess
+from shutil import which
 
 run = True
 
@@ -57,6 +59,12 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    if which("pigpiod") is None:
+        print("The daemon is not installed, type "
+              "'sudo apt install pigpiod' to install it")
+        exit(0)
+    elif "pigpiod" not in (p.name() for p in psutil.process_iter()):
+        subprocess.Popen("sudo pigpiod -s 2", shell=True).wait(1)
     signal.signal(signal.SIGINT, handler_stop_signals)
     signal.signal(signal.SIGTERM, handler_stop_signals)
     main()
