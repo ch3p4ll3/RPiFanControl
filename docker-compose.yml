@@ -1,0 +1,10 @@
+version: '3.4'
+x-default: &default
+  restart: always
+  env_file:
+    - config.env
+
+services:
+  python:
+    <<: *default
+    image: docker.tcorporate.ml/fan-control:latest
