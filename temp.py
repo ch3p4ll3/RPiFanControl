@@ -64,7 +64,7 @@ if __name__ == '__main__':
               "'sudo apt install pigpiod' to install it")
         exit(0)
     elif "pigpiod" not in (p.name() for p in psutil.process_iter()):
-        subprocess.Popen("sudo pigpiod -s 2", shell=True).wait(1)
+        subprocess.Popen(f"sudo {which('pigpiod')} -s 2").wait(1)
     signal.signal(signal.SIGINT, handler_stop_signals)
     signal.signal(signal.SIGTERM, handler_stop_signals)
     main()
