@@ -36,7 +36,7 @@ def main() -> None:
 
     while run:
         try:
-            tempC = psutil.sensors_temperatures()['cpu-thermal'][0][1]
+            tempC = psutil.sensors_temperatures()['cpu_thermal'][0].current
             calc = (tempC - in_min) * (out_max - out_min) / \
                    (in_max - in_min) + out_min
 
